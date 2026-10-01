@@ -1,0 +1,25 @@
+[package]
+name = "kvasir-core"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+description = "Self-contained music acquisition, inspection, and tagging."
+publish = false
+
+[features]
+default = ["resolve-spotify", "resolve-tidal", "resolve-youtube", "enrich", "lyrics-fallback"]
+resolve-spotify = ["kvasir-deezer/resolve-spotify"]
+resolve-tidal = ["kvasir-deezer/resolve-tidal"]
+resolve-youtube = ["kvasir-deezer/resolve-youtube"]
+enrich = ["kvasir-deezer/enrich"]
+lyrics-fallback = ["kvasir-deezer/lyrics-fallback"]
+
+[dependencies]
+bytes = "1"
+kvasir-audio = { path = "../kvasir-audio" }
+kvasir-deezer = { path = "../kvasir-deezer" }
+thiserror = "2"
+tokio = { version = "1", features = ["rt"] }
