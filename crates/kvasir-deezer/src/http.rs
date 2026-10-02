@@ -2,9 +2,10 @@ use std::sync::OnceLock;
 use std::time::Duration;
 
 use bytes::Bytes;
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 use futures_core::Stream;
 use futures_util::StreamExt;
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use serde_json::Value;
 use std::pin::Pin;
 use tokio::sync::Semaphore;
 
@@ -92,7 +93,8 @@ impl HttpClient {
         body: Option<Vec<u8>>,
         content_type: Option<&str>,
     ) -> Result<HttpResponse, DeezerError> {
-        let _permit = slots()
+        let pool = slots();
+        let _permit = pool
             .acquire()
             .await
             .map_err(|_| DeezerError::Message("http pool closed".into()))?;

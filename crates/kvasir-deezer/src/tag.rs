@@ -578,6 +578,7 @@ fn block(kind: u8, last: bool, body: &[u8]) -> Vec<u8> {
     out
 }
 
+#[derive(Debug)]
 pub enum Probe {
     NeedMore,
     Ready { audio_offset: usize, flac: bool },

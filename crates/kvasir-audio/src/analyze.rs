@@ -3,7 +3,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use bytes::Bytes;
-use futures_core::Stream;
+use futures_util::Stream;
 use lofty::file::{AudioFile, TaggedFileExt};
 use lofty::picture::Picture;
 use lofty::probe::Probe;
@@ -173,14 +173,7 @@ fn picture_from_lofty(picture: &Picture) -> ParserPicture {
             .map(|mime| mime.to_string())
             .unwrap_or_else(|| "application/octet-stream".into()),
         data: picture.data().to_vec(),
-        description: {
-            let description = picture.description();
-            if description.is_empty() {
-                None
-            } else {
-                Some(description.to_string())
-            }
-        },
+        description: picture.description().filter(|value| !value.is_empty()).map(|value| value.to_string()),
     }
 }
 
@@ -208,24 +201,24 @@ fn metadata_from_lofty(bytes: &[u8], read_duration: bool) -> Result<ParserMetada
     };
 
     if let Some(tag) = tagged.primary_tag() {
-        metadata.title = tag.title().map(str::to_string);
-        metadata.artist = tag.artist().map(str::to_string);
-        metadata.artists = tag.get_strings(&ItemKey::TrackArtist).map(str::to_string).collect();
-        metadata.album = tag.album().map(str::to_string);
-        metadata.album_artist = tag.get_string(&ItemKey::AlbumArtist).map(str::to_string);
+        metadata.title = tag.title().map(|value| value.to_string());
+        metadata.artist = tag.artist().map(|value| value.to_string());
+        metadata.artists = tag.get_strings(&ItemKey::TrackArtist).map(|value| value.to_string()).collect();
+        metadata.album = tag.album().map(|value| value.to_string());
+        metadata.album_artist = tag.get_string(&ItemKey::AlbumArtist).map(|value| value.to_string());
         metadata.track_number = tag.track();
         metadata.track_total = tag.track_total();
         metadata.disc_number = tag.disk();
         metadata.disc_total = tag.disk_total();
         metadata.year = tag.year();
-        metadata.date = tag.get_string(&ItemKey::RecordingDate).map(str::to_string);
+        metadata.date = tag.get_string(&ItemKey::RecordingDate).map(|value| value.to_string());
         metadata.genres = tag.genre().map(|genre| vec![genre.to_string()]).unwrap_or_default();
-        metadata.composers = tag.get_strings(&ItemKey::Composer).map(str::to_string).collect();
+        metadata.composers = tag.get_strings(&ItemKey::Composer).map(|value| value.to_string()).collect();
         metadata.isrc = tag
             .get_string(&ItemKey::Isrc)
             .map(|value| vec![value.to_string()])
             .unwrap_or_default();
-        metadata.copyright = tag.get_string(&ItemKey::CopyrightMessage).map(str::to_string);
+        metadata.copyright = tag.get_string(&ItemKey::CopyrightMessage).map(|value| value.to_string());
         metadata.pictures = tag.pictures().iter().map(picture_from_lofty).collect();
     }
 
