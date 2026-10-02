@@ -1,6 +1,6 @@
 [package]
 name = "kvasir-core"
-version = "0.1.0"
+version = "0.1.1"
 edition.workspace = true
 license.workspace = true
 authors.workspace = true
@@ -22,7 +22,7 @@ lyrics-fallback = ["kvasir-deezer/lyrics-fallback"]
 [dependencies]
 bytes = "1"
 kvasir-audio = { version = "0.1.0", path = "../kvasir-audio" }
-kvasir-deezer = { version = "0.1.0", path = "../kvasir-deezer", default-features = false }
+kvasir-deezer = { version = "0.1.1", path = "../kvasir-deezer", default-features = false }
 thiserror = "2"
 tokio = { version = "1", features = ["rt"] }
 

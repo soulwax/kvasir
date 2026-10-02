@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 — 2026-10-02
+
+- Stripe decryption keeps one Blowfish key for the whole file and decrypts each stripe in place.
+- Download streams decrypt on the task that reads the socket, and the output buffer is reserved when Deezer reports a size.
+- CDN reads use a five-minute timeout so a long file is not cut off by the API timeout.
+
 ## 0.1.0 — 2026-10-02
 
 First release.

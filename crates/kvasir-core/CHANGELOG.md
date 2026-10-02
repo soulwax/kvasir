@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 — 2026-10-02
+
+- Depends on `kvasir-deezer` 0.1.1.
+- Tagging uses the downloaded bytes directly instead of copying them into a second buffer first.
+
 ## 0.1.0 — 2026-10-02
 
 First release.

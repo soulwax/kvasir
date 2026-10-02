@@ -822,7 +822,7 @@ dependencies = [
 
 [[package]]
 name = "kvasir-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bytes",
  "kvasir-audio",
@@ -833,7 +833,7 @@ dependencies = [
 
 [[package]]
 name = "kvasir-deezer"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "aes",
  "async-stream",
