@@ -6,8 +6,10 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 rust-version.workspace = true
-description = "Deezer catalogue, download, decrypt, and tagging."
-publish = false
+description = "Deezer catalogue, download, decrypt, and MP3/FLAC tagging."
+readme = "README.md"
+keywords = ["deezer", "music", "metadata", "mp3", "flac"]
+categories = ["api-bindings", "multimedia::audio"]
 
 [features]
 default = ["resolve-spotify", "resolve-tidal", "resolve-youtube", "enrich", "lyrics-fallback"]

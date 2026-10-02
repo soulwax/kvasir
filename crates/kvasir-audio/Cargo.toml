@@ -7,7 +7,9 @@ authors.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 description = "Bounded audio format detection and normalized music metadata."
-publish = false
+readme = "README.md"
+keywords = ["audio", "metadata", "mp3", "flac", "music"]
+categories = ["multimedia::audio"]
 
 [dependencies]
 bytes = "1"

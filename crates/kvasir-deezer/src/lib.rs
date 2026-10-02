@@ -34,8 +34,7 @@ pub use media::{
 };
 pub use session::{
     cache_stats, clear_shared_caches, configure_cache, create_session, current_session, init_deezer_api,
-    request_public_api, set_default_session, ApiRoots, RetryPolicy, Session, SessionUserData, DEFAULT_ARL,
-    RETRY_POLICY,
+    request_public_api, set_default_session, ApiRoots, RetryPolicy, Session, SessionUserData, RETRY_POLICY,
 };
 pub use stream::{download_track_bytes, open_download, TrackStream};
 pub use tag::{

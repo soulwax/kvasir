@@ -12,7 +12,9 @@ use crate::error::DeezerError;
 use crate::http::HttpClient;
 use crate::track::Track;
 
-pub const DEFAULT_ARL: &str = "c973964816688562722418b5200c1515dffaad15a42643ebf87cc72824a54612ec51c2ad42d566743f9e424c774e98ccae7737770acff59251328e6cd598c7bcac38ca269adf78bfb88ec5bbad6cd800db3c0b88b2af645bb22b99e71de26416";
+fn inert_arl() -> String {
+    "0".repeat(192)
+}
 
 pub const RETRY_POLICY: RetryPolicy = RetryPolicy {
     code4_attempts: 6,
@@ -161,7 +163,7 @@ impl Session {
         );
         Self {
             inner: std::sync::Arc::new(SessionInner {
-                arl: Mutex::new(arl.unwrap_or(DEFAULT_ARL).to_string()),
+                arl: Mutex::new(arl.map(str::to_string).unwrap_or_else(inert_arl)),
                 http: AsyncMutex::new(http),
                 roots,
                 cache: AsyncMutex::new(TtlCache::new(1000, Duration::from_secs(60 * 60))),

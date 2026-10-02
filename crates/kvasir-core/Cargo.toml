@@ -6,8 +6,10 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 rust-version.workspace = true
-description = "Self-contained music acquisition, inspection, and tagging."
-publish = false
+description = "Acquire a track, inspect the bytes, and reconcile them with the catalogue."
+readme = "README.md"
+keywords = ["music", "audio", "deezer", "metadata", "tagging"]
+categories = ["multimedia::audio", "api-bindings"]
 
 [features]
 default = ["resolve-spotify", "resolve-tidal", "resolve-youtube", "enrich", "lyrics-fallback"]
@@ -19,8 +21,8 @@ lyrics-fallback = ["kvasir-deezer/lyrics-fallback"]
 
 [dependencies]
 bytes = "1"
-kvasir-audio = { path = "../kvasir-audio" }
-kvasir-deezer = { path = "../kvasir-deezer", default-features = false }
+kvasir-audio = { version = "0.1.0", path = "../kvasir-audio" }
+kvasir-deezer = { version = "0.1.0", path = "../kvasir-deezer", default-features = false }
 thiserror = "2"
 tokio = { version = "1", features = ["rt"] }
 
