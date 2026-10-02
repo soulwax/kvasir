@@ -218,7 +218,7 @@ pub async fn byte_stream(
         .await
         .map_err(|_| DeezerError::Message("http pool closed".into()))?;
     let client = shared_client();
-    let mut request = client.get(url);
+    let mut request = client.get(url).timeout(Duration::from_secs(300));
     if range_start > 0 {
         request = request.header("range", format!("bytes={range_start}-"));
     }

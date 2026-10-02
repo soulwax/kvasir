@@ -129,7 +129,7 @@ pub async fn acquire_from_bytes(
         });
     }
     let tagged = tokio::task::spawn_blocking({
-        let audio_bytes = bytes.to_vec();
+        let audio_bytes = bytes.clone();
         let model = catalogue_model.clone();
         move || catalogue::add_track_tags(&audio_bytes, &model)
     })

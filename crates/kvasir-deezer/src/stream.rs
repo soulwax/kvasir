@@ -3,7 +3,6 @@ use std::pin::Pin;
 use bytes::Bytes;
 use futures_core::Stream;
 use futures_util::StreamExt;
-use tokio::task::spawn_blocking;
 
 use crate::decrypt::TrackDecryptor;
 use crate::error::DeezerError;
@@ -72,16 +71,8 @@ fn decrypting_stream(
         let mut decryptor = encrypted.then(|| TrackDecryptor::new(&song_id, start_chunk));
         while let Some(item) = incoming.next().await {
             let chunk = item?;
-            if let Some(current) = decryptor.take() {
-                let part = chunk.to_vec();
-                let (current, produced) = spawn_blocking(move || {
-                    let mut current = current;
-                    let produced = current.push(&part);
-                    (current, produced)
-                })
-                .await
-                .map_err(|err| DeezerError::Message(err.to_string()))?;
-                decryptor = Some(current);
+            if let Some(current) = decryptor.as_mut() {
+                let produced = current.push(&chunk);
                 if !produced.is_empty() {
                     yield Ok(Bytes::from(produced));
                 }
@@ -106,6 +97,9 @@ pub async fn download_track_bytes(session: &Session, track: &Track, quality: &Qu
     };
     let mut stream = download.stream;
     let mut output = Vec::new();
+    if (1..=128 * 1024 * 1024).contains(&download.size) {
+        output.reserve(download.size as usize);
+    }
     while let Some(chunk) = stream.next().await {
         output.extend_from_slice(&chunk?);
     }

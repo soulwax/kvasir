@@ -6,6 +6,13 @@ use kvasir_deezer::{
 use serde_json::json;
 
 #[test]
+fn stripe_decrypt_matches_verified_track_fixture() {
+    let encrypted = include_bytes!("fixtures/stripe-3135556.enc.bin");
+    let plain = include_bytes!("fixtures/stripe-3135556.dec.bin");
+    assert_eq!(decrypt_download(encrypted, "3135556").as_slice(), plain.as_slice());
+}
+
+#[test]
 fn stripe_decrypt_round_trips_synthetic_audio() {
     let plain = {
         let mut bytes = vec![0u8; 2048 * 4 + 10];

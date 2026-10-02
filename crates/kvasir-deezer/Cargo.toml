@@ -23,7 +23,6 @@ lyrics-fallback = []
 aes = "0.8"
 async-stream = "0.3"
 bytes = "1"
-cbc = "0.1"
 cipher = "0.4"
 blowfish = "0.9"
 futures-core = "0.3"
