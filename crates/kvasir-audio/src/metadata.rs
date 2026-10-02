@@ -42,6 +42,7 @@ pub struct AudioTags {
     pub composers: Vec<String>,
     pub isrc: Option<String>,
     pub copyright: Option<String>,
+    pub replay_gain: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -98,6 +99,7 @@ pub struct ParserMetadata {
     pub composers: Vec<String>,
     pub isrc: Vec<String>,
     pub copyright: Option<String>,
+    pub replay_gain: Option<String>,
     pub pictures: Vec<ParserPicture>,
 }
 
@@ -239,6 +241,7 @@ pub fn normalize_metadata(
                 .first()
                 .and_then(|value| text(value, 64)),
             copyright: metadata.copyright.as_deref().and_then(|value| text(value, 512)),
+            replay_gain: metadata.replay_gain.as_deref().and_then(|value| text(value, 64)),
         },
         artwork,
         warnings,

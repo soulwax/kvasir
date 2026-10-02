@@ -219,6 +219,7 @@ fn metadata_from_lofty(bytes: &[u8], read_duration: bool) -> Result<ParserMetada
             .map(|value| vec![value.to_string()])
             .unwrap_or_default();
         metadata.copyright = tag.get_string(&ItemKey::CopyrightMessage).map(|value| value.to_string());
+        metadata.replay_gain = tag.get_string(&ItemKey::ReplayGainTrackGain).map(|value| value.to_string());
         metadata.pictures = tag.pictures().iter().map(picture_from_lofty).collect();
     }
 

@@ -569,6 +569,22 @@ fn comment_block(pairs: &[(String, String)]) -> Vec<u8> {
     body
 }
 
+fn picture_block(data: &[u8]) -> Vec<u8> {
+    let mime = b"image/jpeg";
+    let mut body = Vec::new();
+    body.extend_from_slice(&3u32.to_be_bytes());
+    body.extend_from_slice(&(mime.len() as u32).to_be_bytes());
+    body.extend_from_slice(mime);
+    body.extend_from_slice(&0u32.to_be_bytes());
+    body.extend_from_slice(&0u32.to_be_bytes());
+    body.extend_from_slice(&0u32.to_be_bytes());
+    body.extend_from_slice(&0u32.to_be_bytes());
+    body.extend_from_slice(&0u32.to_be_bytes());
+    body.extend_from_slice(&(data.len() as u32).to_be_bytes());
+    body.extend_from_slice(data);
+    body
+}
+
 fn block(kind: u8, last: bool, body: &[u8]) -> Vec<u8> {
     let mut out = Vec::with_capacity(4 + body.len());
     let header = if last { 0x80 | kind } else { kind };
@@ -635,6 +651,9 @@ fn flac_header(source_header: &[u8], model: &TrackTagModel) -> Vec<u8> {
         blocks.push((0, vec![0; 34]));
     }
     blocks.push((4, comment_block(&vorbis_comments(model))));
+    if let Some(cover) = &model.cover {
+        blocks.push((6, picture_block(cover)));
+    }
     let mut out = b"fLaC".to_vec();
     for (index, (kind, body)) in blocks.iter().enumerate() {
         out.extend(block(*kind, index + 1 == blocks.len(), body));

@@ -1,9 +1,6 @@
 use std::sync::Mutex;
 
-use serde_json::Value;
-
 use crate::error::DeezerError;
-use crate::http::get_text;
 use crate::track::Track;
 
 struct Latch {
@@ -39,6 +36,7 @@ pub fn musixmatch_status() -> (bool, u32, u32) {
     (!state.off, state.failures, state.max_failures)
 }
 
+#[cfg(feature = "lyrics-fallback")]
 fn note_transport_failure() {
     let mut state = latch();
     state.failures = state.failures.saturating_add(1);
@@ -47,6 +45,7 @@ fn note_transport_failure() {
     }
 }
 
+#[cfg(feature = "lyrics-fallback")]
 fn note_success() {
     latch().failures = 0;
 }
@@ -81,7 +80,7 @@ pub async fn fallback_lyrics(_track: &Track) -> Result<String, DeezerError> {
 
 #[cfg(feature = "lyrics-fallback")]
 async fn scrape(query: &str) -> Result<String, DeezerError> {
-    let search = get_text(
+    let search = crate::http::get_text(
         &format!("https://musixmatch.com/search/{}/tracks", urlencoding_query(query)),
         &[("User-Agent", "Mozilla/5.0".into()), ("referer", "https://l.facebook.com/".into())],
     )
@@ -98,7 +97,7 @@ async fn scrape(query: &str) -> Result<String, DeezerError> {
     } else {
         href
     };
-    let page = get_text(
+    let page = crate::http::get_text(
         &url,
         &[("User-Agent", "Mozilla/5.0".into()), ("referer", "https://musixmatch.com/".into())],
     )
@@ -118,9 +117,4 @@ fn urlencoding_query(query: &str) -> String {
             other => format!("%{:02X}", other as u32),
         })
         .collect()
-}
-
-#[allow(dead_code)]
-fn _value_marker(value: &Value) -> bool {
-    value.is_null()
 }

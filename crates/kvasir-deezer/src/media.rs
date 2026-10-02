@@ -108,7 +108,7 @@ async fn media_get_url(session: &Session, tokens: &[String], formats: &[String])
             "track_tokens": tokens,
         });
         match HttpClient::new("", Vec::new(), Vec::new())
-            .post_json("https://media.deezer.com/v1/get_url", &body, &[])
+            .post_json(&session.roots().media, &body, &[])
             .await
         {
             Ok(response) => {

@@ -108,13 +108,17 @@ pub async fn acquire(session: &catalogue::Session, track_id: &str, quality: cata
     let bytes = catalogue::download_track_bytes(session, &track, &quality)
         .await?
         .ok_or_else(|| AcquireError::Unavailable(track_id.to_string()))?;
-    finish_acquire(session, track, quality, bytes).await
+    let model = catalogue::resolve_tag_model(session, track, &catalogue::TagOptions::default()).await?;
+    acquire_from_bytes(bytes, &quality.format_name(), model).await
 }
 
-async fn finish_acquire(session: &catalogue::Session, track: catalogue::Track, quality: catalogue::Quality, bytes: Bytes) -> Result<AcquiredTrack, AcquireError> {
+pub async fn acquire_from_bytes(
+    bytes: Bytes,
+    resolved_format: &str,
+    catalogue_model: catalogue::TrackTagModel,
+) -> Result<AcquiredTrack, AcquireError> {
     let analysis = audio::analyze_audio(bytes.clone(), audio::AudioHints::default(), Default::default()).await?;
-    let catalogue_model = catalogue::resolve_tag_model(session, track, &catalogue::TagOptions::default()).await?;
-    let issues = reconcile(&analysis, &catalogue_model, &quality.format_name());
+    let issues = reconcile(&analysis, &catalogue_model, resolved_format);
     if tagging_blocked(&issues) || !matches!(analysis.format.id, audio::AudioFormatId::Mp3 | audio::AudioFormatId::Flac) {
         return Ok(AcquiredTrack {
             bytes,

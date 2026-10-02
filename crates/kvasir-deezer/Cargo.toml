@@ -35,4 +35,6 @@ thiserror = "2"
 tokio = { version = "1", features = ["rt", "sync", "time", "macros"] }
 
 [dev-dependencies]
-tokio = { version = "1", features = ["rt", "macros"] }
+kvasir-audio = { path = "../kvasir-audio" }
+tokio = { version = "1", features = ["macros", "rt"] }
+wiremock = "0.6"

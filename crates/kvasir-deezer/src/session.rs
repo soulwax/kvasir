@@ -58,9 +58,29 @@ pub struct Session {
     inner: std::sync::Arc<SessionInner>,
 }
 
+#[derive(Clone, Debug)]
+pub struct ApiRoots {
+    pub gateway: String,
+    pub light: String,
+    pub media: String,
+    pub public_api: String,
+}
+
+impl Default for ApiRoots {
+    fn default() -> Self {
+        Self {
+            gateway: "https://api.deezer.com/1.0/gateway.php".into(),
+            light: "https://www.deezer.com/ajax/gw-light.php".into(),
+            media: "https://media.deezer.com/v1/get_url".into(),
+            public_api: "https://api.deezer.com".into(),
+        }
+    }
+}
+
 struct SessionInner {
     arl: Mutex<String>,
     http: AsyncMutex<HttpClient>,
+    roots: ApiRoots,
     cache: AsyncMutex<TtlCache>,
     inflight: AsyncMutex<HashMap<String, futures_util::future::Shared<futures_util::future::BoxFuture<'static, Result<Value, DeezerError>>>>>,
     user: AsyncMutex<Option<(SessionUserData, Instant)>>,
@@ -116,6 +136,10 @@ fn results_present(results: &Value) -> bool {
 
 impl Session {
     pub fn new(arl: Option<&str>) -> Self {
+        Self::with_roots(arl, ApiRoots::default())
+    }
+
+    pub fn with_roots(arl: Option<&str>, roots: ApiRoots) -> Self {
         let http = HttpClient::new(
             "https://www.deezer.com/ajax",
             vec![
@@ -139,11 +163,16 @@ impl Session {
             inner: std::sync::Arc::new(SessionInner {
                 arl: Mutex::new(arl.unwrap_or(DEFAULT_ARL).to_string()),
                 http: AsyncMutex::new(http),
+                roots,
                 cache: AsyncMutex::new(TtlCache::new(1000, Duration::from_secs(60 * 60))),
                 inflight: AsyncMutex::new(HashMap::new()),
                 user: AsyncMutex::new(None),
             }),
         }
+    }
+
+    pub fn roots(&self) -> ApiRoots {
+        self.inner.roots.clone()
     }
 
     pub fn arl(&self) -> String {
@@ -202,13 +231,14 @@ impl Session {
             self.inner.cache.lock().await.clear();
         }
         let cookie = format!("arl={}", self.arl());
+        let light = self.roots().light;
         let response = self
             .inner
             .http
             .lock()
             .await
             .get(
-                "https://www.deezer.com/ajax/gw-light.php",
+                &light,
                 &[
                     ("method", "deezer.ping".into()),
                     ("api_version", "1.0".into()),
@@ -231,13 +261,14 @@ impl Session {
     }
 
     pub async fn refresh_api_token(&self) -> Result<String, DeezerError> {
+        let light = self.roots().light;
         let data = self
             .inner
             .http
             .lock()
             .await
             .get(
-                "https://www.deezer.com/ajax/gw-light.php",
+                &light,
                 &[
                     ("method", "deezer.getUserData".into()),
                     ("api_version", "1.0".into()),
@@ -267,13 +298,14 @@ impl Session {
                 }
             }
         }
+        let light = self.roots().light;
         let data = self
             .inner
             .http
             .lock()
             .await
             .get(
-                "https://www.deezer.com/ajax/gw-light.php",
+                &light,
                 &[
                     ("method", "deezer.getUserData".into()),
                     ("api_version", "1.0".into()),
@@ -414,7 +446,7 @@ impl Session {
         let method = method.to_string();
         self.coalesce(key, shared, move |session| async move {
             let data = session
-                .request("POST", "https://api.deezer.com/1.0/gateway.php", Some(body), &[("method", method)])
+                .request("POST", &session.roots().gateway, Some(body), &[("method", method)])
                 .await?;
             let results = data.get("results").cloned().unwrap_or(Value::Null);
             if results_present(&results) {
@@ -429,11 +461,12 @@ impl Session {
     pub async fn gw_light(&self, body: Value, method: &str) -> Result<Value, DeezerError> {
         let key = format!("gwl:{method}:{}", cache_key(&body));
         let method = method.to_string();
+        let url = self.roots().light;
         self.coalesce(key, false, move |session| async move {
             let data = session
                 .request(
                     "POST",
-                    "https://www.deezer.com/ajax/gw-light.php",
+                    &url,
                     Some(body),
                     &[("method", method), ("api_version", "1.0".into())],
                 )
@@ -451,12 +484,13 @@ impl Session {
     pub async fn gw_get(&self, method: &str, params: Vec<(String, String)>) -> Result<Value, DeezerError> {
         let key = format!("gwget:{method}:{}", params.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join("&"));
         let method = method.to_string();
+        let gateway = self.roots().gateway;
         self.coalesce(key, false, move |session| async move {
             let mut query = vec![("method".to_string(), method)];
             query.extend(params);
             let query_ref: Vec<(&str, String)> = query.iter().map(|(key, value)| (key.as_str(), value.clone())).collect();
             let data = session
-                .request("GET", "https://api.deezer.com/1.0/gateway.php", None, &query_ref)
+                .request("GET", &gateway, None, &query_ref)
                 .await?;
             let results = data.get("results").cloned().unwrap_or(Value::Null);
             if results_present(&results) {
@@ -618,7 +652,7 @@ pub async fn request_public_api(slug: &str) -> Result<Value, DeezerError> {
         let pending = if let Some(existing) = guard.1.get(&key) {
             existing.clone()
         } else {
-            let url = format!("https://api.deezer.com{slug}");
+        let url = format!("{}{slug}", current_session().roots().public_api);
             let future = async move {
                 let value = crate::http::get_json(&url, &[]).await?;
                 if value.get("error").is_some() && !value.get("error").unwrap().is_null() {

@@ -20,6 +20,9 @@ lyrics-fallback = ["kvasir-deezer/lyrics-fallback"]
 [dependencies]
 bytes = "1"
 kvasir-audio = { path = "../kvasir-audio" }
-kvasir-deezer = { path = "../kvasir-deezer" }
+kvasir-deezer = { path = "../kvasir-deezer", default-features = false }
 thiserror = "2"
 tokio = { version = "1", features = ["rt"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }

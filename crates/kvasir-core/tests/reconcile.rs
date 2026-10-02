@@ -30,6 +30,7 @@ fn analysis(id: AudioFormatId, title: Option<&str>, isrc: Option<&str>, duration
             composers: Vec::new(),
             isrc: isrc.map(str::to_string),
             copyright: None,
+            replay_gain: None,
         },
         artwork: Vec::new(),
         warnings: Vec::new(),
